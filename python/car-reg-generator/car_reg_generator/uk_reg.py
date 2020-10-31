@@ -1,3 +1,4 @@
+import numpy as np
 from random import choice
 
 
@@ -65,11 +66,30 @@ class UkRegGenerator:
 
     def __init__(self):
         self.memory_tags = sum(DvlaMemoryTag().regions.values(), [])
-        self.numbers = [chr(x) for x in range(ord('0'), ord('0')+10)]
-        self.letters = [chr(x) for x in range(ord('A'), ord('A')+26)]
+        self.numbers = [x for x in '0123456789']
+        self.letters = [x for x in 'ABCDEFGHIJKLMNOPQRSTUVWXYZ']
 
-    def get_reg(self):
+    def get_reg(self) -> str:
         memory_tag = choice(self.memory_tags)
         age_identifier = choice(self.numbers) + choice(self.numbers)
         rand_letters = choice(self.letters) + choice(self.letters) + choice(self.letters)
         return memory_tag + age_identifier + rand_letters
+
+
+class UkRegVectorizer:
+    def __init__(self):
+        self.chars = [x for x in '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ']
+        self.encoding_dict = {x[1]: x[0] for x in enumerate(self.chars)}
+        self.decoding_dict = {x[0]: x[1] for x in enumerate(self.chars)}
+
+    def vectorize(self, uk_reg_str: str) -> np.array:
+        reg_chars = [x for x in uk_reg_str]
+        if set(reg_chars) - set(self.chars):
+            raise ValueError('out of bound chars found in ' + str(uk_reg_str))
+        return np.array([self.encoding_dict[x] for x in reg_chars]) / len(self.encoding_dict)
+
+    def recover(self, vec: np.array) -> str:
+        int_list = np.rint(np.array(vec) * len(self.encoding_dict))
+        if set(int_list) - set(self.encoding_dict.values()):
+            raise ValueError('vector values out of range')
+        return ''.join([self.decoding_dict[x] for x in int_list])
