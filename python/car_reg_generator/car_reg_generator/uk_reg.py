@@ -94,3 +94,24 @@ class UkRegVectorizer:
         if set(int_list) - set(self.encoding_dict.values()):
             raise ValueError('vector values out of range')
         return ''.join([self.decoding_dict[x] for x in int_list])
+
+
+class UkRegBowVectorizer:
+    def __init__(self):
+        self.chars = [x for x in '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ']
+        self.encoding_dict = {x[1]: x[0] for x in enumerate(self.chars)}
+        self.decoding_dict = {x[0]: x[1] for x in enumerate(self.chars)}
+
+    def vectorize(self, uk_reg_str: str) -> np.array:
+        vec = np.zeros(len(self.chars) * len(uk_reg_str))
+        for ind, c in enumerate(uk_reg_str):
+            vec[ind*len(self.chars) + self.encoding_dict[c]] = 1.0
+        return vec
+
+    def recover(self, vec: np.array) -> str:
+        if len(vec) % len(self.chars) != 0:
+            raise ValueError('vector length not divisible by number of chars')
+        reg_len = int(len(vec) / len(self.chars))
+        # reshape as matrix, so we can take max along each BoW letter encoding
+        mtr = np.reshape(vec, (reg_len, len(self.chars)))
+        return ''.join([self.decoding_dict[x] for x in np.argmax(mtr, axis=1)])
