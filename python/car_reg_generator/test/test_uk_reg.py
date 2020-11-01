@@ -17,6 +17,7 @@ def test_uk_reg_generator():
     random.seed(0)
     g = UkRegGenerator()
     assert g.get_reg() == 'YK66BIQ'
+    assert g.get_reg() == 'MQ64PLS'
 
 
 def test_uk_reg_vectorizer():
