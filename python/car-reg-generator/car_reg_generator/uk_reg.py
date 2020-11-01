@@ -1,5 +1,6 @@
 import numpy as np
 from random import choice
+from typing import Dict
 
 
 class DvlaMemoryTag:
@@ -9,7 +10,7 @@ class DvlaMemoryTag:
         """  object has member region, which is a dict<str, str>, key being uk region, value list of 2-elt memory tags """
         self.regions = self.get_expanded_regions(self.get_regions())
 
-    def get_regions(self) -> dict[str, str]:
+    def get_regions(self) -> Dict[str, str]:
         return {'anglia': ['AA', 'AB', 'AC', 'AD', 'AE', 'AF', 'AG', 'AH', 'AJ', 'AK', 'AL', 'AM', 'AN',
                            'AO', 'AP', 'AR', 'AS', 'AT', 'AU', 'AV', 'AW', 'AX', 'AY'],
                 'birmingham': ['B'],
@@ -51,7 +52,7 @@ class DvlaMemoryTag:
                 'beverley': ['YV', 'YW', 'YX', 'YY']
                 }
 
-    def get_expanded_regions(self, regions: dict[str, str]) -> dict[str, str]:
+    def get_expanded_regions(self, regions: Dict[str, str]) -> Dict[str, str]:
         for k, v in regions.items():
             for tag in v:
                 if len(v) == 1:  # single letter to expand
