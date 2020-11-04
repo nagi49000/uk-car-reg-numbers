@@ -78,6 +78,10 @@ class UkRegGenerator:
 
 
 class UkRegVectorizer:
+    """ vectorizing by taking the reg letters, and converting each to a floating point in [0,1],
+        so a 7-element string is converted to a 7-element float array
+    """
+
     def __init__(self):
         self.chars = [x for x in '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ']
         self.encoding_dict = {x[1]: x[0] for x in enumerate(self.chars)}
@@ -97,6 +101,11 @@ class UkRegVectorizer:
 
 
 class UkRegBowVectorizer:
+    """ vectorizing by taking the reg letters, and one-hot encoding on 0-9,A-Z,
+        so a 3-element string is converted to a 3*(10+26) = 108-element array;
+        all zeros except for 3 entries which are 1
+    """
+
     def __init__(self):
         self.chars = [x for x in '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ']
         self.encoding_dict = {x[1]: x[0] for x in enumerate(self.chars)}
@@ -115,3 +124,57 @@ class UkRegBowVectorizer:
         # reshape as matrix, so we can take max along each BoW letter encoding
         mtr = np.reshape(vec, (reg_len, len(self.chars)))
         return ''.join([self.decoding_dict[x] for x in np.argmax(mtr, axis=1)])
+
+
+class UkRegDvlaVectorizer:
+    """ vectorizing by taking the reg letters, and one-hot encoding on
+        0-9 for chars 2,3 and A-Z on chars 0-1, 4-6
+        so all reg strs must be of the form AA00AAA (for alphas and numerics).
+        The vectorized form is a vector of length 2*10 + 5*26, with all zeros
+        except 7 elements, which are 1
+    """
+
+    def __init__(self):
+        self.numbers = [x for x in '0123456789']
+        self.letters = [x for x in 'ABCDEFGHIJKLMNOPQRSTUVWXYZ']
+        self.encoding_numbers = {x[1]: x[0] for x in enumerate(self.numbers)}
+        self.decoding_numbers = {x[0]: x[1] for x in enumerate(self.numbers)}
+        self.encoding_letters = {x[1]: x[0] for x in enumerate(self.letters)}
+        self.decoding_letters = {x[0]: x[1] for x in enumerate(self.letters)}
+
+    def vectorize(self, uk_reg_str: str) -> np.array:
+        if len(uk_reg_str) != 7:
+            raise ValueError('expected length 7 string in '+str(uk_reg_str))
+        if not uk_reg_str[2:4].isnumeric():
+            raise ValueError('expected numeric in positions 2,3 in ' + str(uk_reg_str))
+        if not uk_reg_str[:2].isalpha() or not uk_reg_str[4:].isalpha():
+            raise ValueError('expected first 2 and last 3 chars to be alpha in ' + str(uk_reg_str))
+        n_let = len(self.letters)
+        n_num = len(self.numbers)
+
+        vec = np.zeros(n_let * 5 + n_num * 2)
+        vec[self.encoding_letters[uk_reg_str[0]]] = 1.0
+        vec[self.encoding_letters[uk_reg_str[1]] + n_let] = 1.0
+        vec[self.encoding_numbers[uk_reg_str[2]] + 2 * n_let] = 1.0
+        vec[self.encoding_numbers[uk_reg_str[3]] + 2 * n_let + n_num] = 1.0
+        vec[self.encoding_letters[uk_reg_str[4]] + 2 * n_let + 2 * n_num] = 1.0
+        vec[self.encoding_letters[uk_reg_str[5]] + 3 * n_let + 2 * n_num] = 1.0
+        vec[self.encoding_letters[uk_reg_str[6]] + 4 * n_let + 2 * n_num] = 1.0
+        return vec
+
+    def recover(self, vec: np.array) -> str:
+        n_let = len(self.letters)
+        n_num = len(self.numbers)
+
+        if len(vec) != 2*n_num + 5*n_let:
+            raise ValueError('expected length 140, found '+str(len(vec)))
+
+        s = [' '] * 7
+        s[0] = self.decoding_letters[np.argmax(vec[:n_let])]
+        s[1] = self.decoding_letters[np.argmax(vec[n_let:2 * n_let])]
+        s[2] = self.decoding_numbers[np.argmax(vec[2 * n_let:2 * n_let + n_num])]
+        s[3] = self.decoding_numbers[np.argmax(vec[2 * n_let + n_num:2 * n_let + 2 * n_num])]
+        s[4] = self.decoding_letters[np.argmax(vec[2 * n_let + 2 * n_num:3 * n_let + 2 * n_num])]
+        s[5] = self.decoding_letters[np.argmax(vec[3 * n_let + 2 * n_num:4 * n_let + 2 * n_num])]
+        s[6] = self.decoding_letters[np.argmax(vec[4 * n_let + 2 * n_num:5 * n_let + 2 * n_num])]
+        return ''.join(s)

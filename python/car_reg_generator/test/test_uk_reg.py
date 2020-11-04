@@ -5,6 +5,7 @@ from car_reg_generator.uk_reg import DvlaMemoryTag
 from car_reg_generator.uk_reg import UkRegGenerator
 from car_reg_generator.uk_reg import UkRegVectorizer
 from car_reg_generator.uk_reg import UkRegBowVectorizer
+from car_reg_generator.uk_reg import UkRegDvlaVectorizer
 
 
 def test_dvla_memory_tag():
@@ -50,3 +51,28 @@ def test_uk_reg_bow_vectorizer():
     with pytest.raises(ValueError):
         # length of vector inconsistent with BoW
         UkRegBowVectorizer().recover(np.zeros(17))
+
+
+def test_uk_reg_dvla_vectorizer():
+    v = UkRegDvlaVectorizer().vectorize('YK09AIZ')
+    assert len(v) == 150
+    assert np.sum(np.abs(v)) == pytest.approx(7.0)
+    assert list(np.where(v == 1)[0]) == [24,  36,  52, 71, 72, 106, 149]
+
+    assert UkRegDvlaVectorizer().recover(v) == 'YK09AIZ'
+
+    with pytest.raises(ValueError):
+        # length of vector inconsistent with spec
+        UkRegDvlaVectorizer().recover(np.zeros(17))
+
+    with pytest.raises(ValueError):
+        UkRegDvlaVectorizer().vectorize('Y509AIZ')
+
+    with pytest.raises(ValueError):
+        UkRegDvlaVectorizer().vectorize('YKK9AIZ')
+
+    with pytest.raises(ValueError):
+        UkRegDvlaVectorizer().vectorize('YK090IZ')
+
+    with pytest.raises(ValueError):
+        UkRegDvlaVectorizer().vectorize('YK090I')
