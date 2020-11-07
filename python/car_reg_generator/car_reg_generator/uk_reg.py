@@ -155,11 +155,11 @@ class UkRegDvlaVectorizer:
         vec = np.zeros(n_let * 5 + n_num * 2)
         vec[self.encoding_letters[uk_reg_str[0]]] = 1.0
         vec[self.encoding_letters[uk_reg_str[1]] + n_let] = 1.0
-        vec[self.encoding_numbers[uk_reg_str[2]] + 2 * n_let] = 1.0
-        vec[self.encoding_numbers[uk_reg_str[3]] + 2 * n_let + n_num] = 1.0
-        vec[self.encoding_letters[uk_reg_str[4]] + 2 * n_let + 2 * n_num] = 1.0
-        vec[self.encoding_letters[uk_reg_str[5]] + 3 * n_let + 2 * n_num] = 1.0
-        vec[self.encoding_letters[uk_reg_str[6]] + 4 * n_let + 2 * n_num] = 1.0
+        vec[self.encoding_letters[uk_reg_str[4]] + 2 * n_let] = 1.0
+        vec[self.encoding_letters[uk_reg_str[5]] + 3 * n_let] = 1.0
+        vec[self.encoding_letters[uk_reg_str[6]] + 4 * n_let] = 1.0
+        vec[self.encoding_numbers[uk_reg_str[2]] + 5 * n_let] = 1.0
+        vec[self.encoding_numbers[uk_reg_str[3]] + 5 * n_let + n_num] = 1.0
         return vec
 
     def recover(self, vec: np.array) -> str:
@@ -172,9 +172,9 @@ class UkRegDvlaVectorizer:
         s = [' '] * 7
         s[0] = self.decoding_letters[np.argmax(vec[:n_let])]
         s[1] = self.decoding_letters[np.argmax(vec[n_let:2 * n_let])]
-        s[2] = self.decoding_numbers[np.argmax(vec[2 * n_let:2 * n_let + n_num])]
-        s[3] = self.decoding_numbers[np.argmax(vec[2 * n_let + n_num:2 * n_let + 2 * n_num])]
-        s[4] = self.decoding_letters[np.argmax(vec[2 * n_let + 2 * n_num:3 * n_let + 2 * n_num])]
-        s[5] = self.decoding_letters[np.argmax(vec[3 * n_let + 2 * n_num:4 * n_let + 2 * n_num])]
-        s[6] = self.decoding_letters[np.argmax(vec[4 * n_let + 2 * n_num:5 * n_let + 2 * n_num])]
+        s[4] = self.decoding_letters[np.argmax(vec[2 * n_let:3 * n_let])]
+        s[5] = self.decoding_letters[np.argmax(vec[3 * n_let:4 * n_let])]
+        s[6] = self.decoding_letters[np.argmax(vec[4 * n_let:5 * n_let])]
+        s[2] = self.decoding_numbers[np.argmax(vec[5 * n_let:5 * n_let + n_num])]
+        s[3] = self.decoding_numbers[np.argmax(vec[5 * n_let + n_num:5 * n_let + 2 * n_num])]
         return ''.join(s)

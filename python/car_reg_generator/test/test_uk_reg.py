@@ -57,7 +57,7 @@ def test_uk_reg_dvla_vectorizer():
     v = UkRegDvlaVectorizer().vectorize('YK09AIZ')
     assert len(v) == 150
     assert np.sum(np.abs(v)) == pytest.approx(7.0)
-    assert list(np.where(v == 1)[0]) == [24,  36,  52, 71, 72, 106, 149]
+    assert list(np.where(v == 1)[0]) == [24, 36, 52, 86, 129, 130, 149]
 
     assert UkRegDvlaVectorizer().recover(v) == 'YK09AIZ'
 
